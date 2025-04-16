@@ -1,48 +1,37 @@
-from flask import Flask, request, render_template_string, jsonify
-import cv2
-import numpy as np
 import os
-from ocr_processor import OCRProcessor, MedicalDataExtractor
+from flask import Flask, request, jsonify
+import cv2
+from ocr import MedicalOCR
+from extractor import MedicalDataExtractor
 
 app = Flask(__name__)
-ocr_processor = OCRProcessor()
-data_extractor = MedicalDataExtractor()
-
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-HTML_TEMPLATE = """
-<!doctype html>
-<title>Medical OCR</title>
-<h2>Upload a Medical Prescription Image</h2>
-<form method=post enctype=multipart/form-data>
-  <input type=file name=file>
-  <input type=submit value=Upload>
-</form>
-{% if data %}
-<h3>Extracted Data:</h3>
-<pre>{{ data | tojson(indent=2) }}</pre>
-{% endif %}
-"""
+ocr_processor = MedicalOCR()
+data_extractor = MedicalDataExtractor()
 
-@app.route("/", methods=["GET", "POST"])
-def upload_image():
-    data = None
-    if request.method == "POST":
-        file = request.files["file"]
-        if file:
-            filepath = os.path.join(UPLOAD_FOLDER, file.filename)
-            file.save(filepath)
+@app.route("/api/extract", methods=["POST"])
+def extract_image_data():
+    if "file" not in request.files:
+        return jsonify({"error": "No file part"}), 400
 
-            image = cv2.imread(filepath)
-            extracted_text = ocr_processor.extract_text_from_image(image)
-            data = data_extractor.extract_medical_data(extracted_text)
+    file = request.files["file"]
+    if file.filename == "":
+        return jsonify({"error": "No selected file"}), 400
 
-    return render_template_string(HTML_TEMPLATE, data=data)
+    filepath = os.path.join(UPLOAD_FOLDER, file.filename)
+    file.save(filepath)
 
-@app.route("/ping")
-def ping():
-    return "pong"
+    image = cv2.imread(filepath)
+    extracted_text = ocr_processor.extract_text_from_image(image)
+    data = data_extractor.extract_medical_data(extracted_text)
+
+    return jsonify({"extracted_data": data})
+
+@app.route("/", methods=["GET"])
+def root():
+    return jsonify({"message": "Medical OCR API is running."})
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
+    app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
