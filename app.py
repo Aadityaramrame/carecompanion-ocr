@@ -2,7 +2,7 @@ import os
 from flask import Flask, request, jsonify
 import cv2
 from ocr_processor import MedicalOCRApp
-from extractor import MedicalDataExtractor
+from ocr_processor import MedicalDataExtractor
 
 app = Flask(__name__)
 UPLOAD_FOLDER = "uploads"
