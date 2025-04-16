@@ -1,37 +1,51 @@
 import os
-from flask import Flask, request, jsonify
-import cv2
-from ocr_processor import MedicalOCRApp
-from ocr_processor import MedicalDataExtractor
+from flask import Flask, request, jsonify, render_template
+from ocr_processor import OCRProcessor
+from extractor import MedicalDataExtractor
+
+# Ensure the input folder exists
+os.makedirs('uploads', exist_ok=True)
 
 app = Flask(__name__)
-UPLOAD_FOLDER = "uploads"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-ocr = MedicalOCRApp()
-data_extractor = MedicalDataExtractor()
+class MedicalOCRApp:
+    """Main application class for processing medical images."""
+    def __init__(self, input_folder='uploads'):
+        self.input_folder = input_folder
+        self.ocr_processor = OCRProcessor()
+        self.data_extractor = MedicalDataExtractor()
 
-@app.route("/api/extract", methods=["POST"])
-def extract_image_data():
-    if "file" not in request.files:
-        return jsonify({"error": "No file part"}), 400
+    def process_image(self, image_path):
+        try:
+            img = cv2.imread(image_path)
+            extracted_text = self.ocr_processor.extract_text_from_image(img)
+            structured_data = self.data_extractor.extract_medical_data(extracted_text)
+            return structured_data
+        except Exception as e:
+            print(f"Error processing image {image_path}: {str(e)}")
+            return None
 
-    file = request.files["file"]
-    if file.filename == "":
-        return jsonify({"error": "No selected file"}), 400
+@app.route("/", methods=["GET", "POST"])
+def index():
+    if request.method == "POST":
+        file = request.files.get("file")
+        if file:
+            # Save uploaded file to 'uploads' folder
+            file_path = os.path.join('uploads', file.filename)
+            file.save(file_path)
 
-    filepath = os.path.join(UPLOAD_FOLDER, file.filename)
-    file.save(filepath)
+            # Process the image and extract data
+            ocr_app = MedicalOCRApp(input_folder='uploads')
+            extracted_data = ocr_app.process_image(file_path)
 
-    image = cv2.imread(filepath)
-    extracted_text = ocr_processor.extract_text_from_image(image)
-    data = data_extractor.extract_medical_data(extracted_text)
+            # Return the extracted data as JSON
+            if extracted_data:
+                return render_template("index.html", data=extracted_data)
+            else:
+                return jsonify({"error": "Failed to extract data from image"}), 400
 
-    return jsonify({"extracted_data": data})
-
-@app.route("/", methods=["GET"])
-def root():
-    return jsonify({"message": "Medical OCR API is running."})
+    # If GET request, just render the upload form
+    return render_template("index.html", data=None)
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
+    app.run(debug=True, host="0.0.0.0", port=5000)
