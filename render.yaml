@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: medical-ocr-app
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python app.py
+    envVars:
+      - key: FLASK_ENV
+        value: production
+    autoDeploy: true
+    branch: main
+    runtime: python
