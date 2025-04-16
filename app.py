@@ -1,14 +1,14 @@
 import os
 from flask import Flask, request, jsonify
 import cv2
-from ocr import MedicalOCR
+from ocr_processor import MedicalOCRApp
 from extractor import MedicalDataExtractor
 
 app = Flask(__name__)
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-ocr_processor = MedicalOCR()
+ocr = MedicalOCRApp()
 data_extractor = MedicalDataExtractor()
 
 @app.route("/api/extract", methods=["POST"])
