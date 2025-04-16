@@ -108,20 +108,24 @@ class MedicalDataExtractor:
 
             result["vitals"] = self.extract_vitals(text)
 
-            if (diagnosis := re.search(MEDICAL_PATTERNS['clinical']['diagnosis'], text)):
+            diagnosis = re.search(MEDICAL_PATTERNS['clinical']['diagnosis'], text)
+            if diagnosis:
                 result["diagnosis"] = self.clean_lines(diagnosis.group(1))
 
-            if (inv := re.search(MEDICAL_PATTERNS['clinical']['investigations'], text)):
+            inv = re.search(MEDICAL_PATTERNS['clinical']['investigations'], text)
+            if inv:
                 result["investigations"] = self.clean_lines(inv.group(1))
 
             meds = re.findall(MEDICAL_PATTERNS['medications']['pattern'], text, re.DOTALL | re.MULTILINE)
             if meds:
                 result["medications"].extend([re.sub(r'\s+', ' ', m).strip() for m in meds])
 
-            if (advice := re.search(MEDICAL_PATTERNS['advice'], text)):
+            advice = re.search(MEDICAL_PATTERNS['advice'], text)
+            if advice:
                 result["advice"] = self.clean_lines(advice.group(1))
 
-            if (follow_up := re.search(MEDICAL_PATTERNS['follow_up'], text)):
+            follow_up = re.search(MEDICAL_PATTERNS['follow_up'], text)
+            if follow_up:
                 result["follow_up"] = {"date": follow_up.group(1).strip()}
 
         except Exception as e:
