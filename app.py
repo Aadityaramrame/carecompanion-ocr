@@ -7,8 +7,13 @@ os.makedirs('uploads', exist_ok=True)
 
 app = Flask(__name__)
 
+
 # Initialize processor
 ocr_processor = OCRProcessor()
+
+@app.route("/")
+def home():
+    return "🚀 OCR App is running!"
 
 @app.route("/", methods=["GET", "POST"])
 def index():
