@@ -3,7 +3,7 @@ from flask import Flask, request, jsonify, render_template
 from ocr_processor import OCRProcessor  # Handles both OCR + data extraction
 
 # Ensure the uploads folder exists
-ios.makedirs('uploads', exist_ok=True)
+os.makedirs('uploads', exist_ok=True)
 
 app = Flask(__name__)
 
