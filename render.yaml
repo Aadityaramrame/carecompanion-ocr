@@ -1,7 +1,7 @@
 services:
   - type: web
     name: medical-ocr-app
-    env: python
+    env: docker
     plan: free
     buildCommand: pip install -r requirements.txt
     startCommand: python app.py
