@@ -3,3 +3,5 @@ pytesseract
 opencv-python
 numpy
 Pillow
+gunicorn
+python-dotenv
