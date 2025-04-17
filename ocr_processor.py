@@ -44,18 +44,14 @@ MEDICAL_PATTERNS = {
 
 
 class OCRProcessor:
-    """Extracts text from an image using Tesseract OCR."""
+    """Extracts text from an image using Tesseract OCR (Streamlit-style)."""
     def extract_text_from_image(self, image: np.ndarray) -> str:
         if image is None:
             raise ValueError("No image data provided to OCRProcessor.extract_text")
 
-        # Preprocessing
+        # **Reverted to simple grayscale as in your Streamlit version**
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        gray = cv2.GaussianBlur(gray, (3, 3), 0)
-        _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-
-        custom_config = r'--oem 3 --psm 6'
-        text = pytesseract.image_to_string(thresh, config=custom_config)
+        text = pytesseract.image_to_string(gray)
         return text
 
 
@@ -136,7 +132,7 @@ class MedicalDataExtractor:
 
 
 class MedicalOCRApp:
-    """Main application class for processing medical images."""
+    """Main application class for processing medical images (unchanged)."""
     def __init__(self, input_folder: str):
         self.input_folder = input_folder
         self.ocr_processor = OCRProcessor()
